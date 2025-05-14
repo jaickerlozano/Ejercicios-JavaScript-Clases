@@ -146,6 +146,11 @@ class Carrito {
     }
   }
 
+  // Evalúa si tiene impuesto o no y devuelve el valor esperado
+  #precioFinalConImpuesto(prod) {
+    return prod.tieneImpuesto ? prod.precio * 1.1 : prod.precio;
+  }
+
   agregarProducto(producto) {
     this.#validarProducto(producto);
 
@@ -179,7 +184,7 @@ class Carrito {
 
   calcularTotal() {
     const totalDelCarrito = this.#productos.reduce((acc, prod) => {
-      const precioUnitario = prod.tieneImpuesto ? prod.precio * 1.1 : prod.precio;
+      const precioUnitario = this.#precioFinalConImpuesto(prod); // Se utiliza un método privado para evaluar la condición
       return acc + (precioUnitario * prod.cantidad);
     }, 0);
   
@@ -200,17 +205,60 @@ class Carrito {
 
   toString() {
     let listaDeProductos = '\nLista de productos:\n';
-    this.#productos.forEach(prod => listaDeProductos += `Nombre: ${prod.nombre} - Precio: ${prod.precio} - Cantidad: ${prod.cantidad}\n`);
+    this.#productos.forEach(prod => listaDeProductos += `Nombre: ${prod.nombre} | Precio: ${prod.precio} | Cantidad: ${prod.cantidad}\n`);
 
     let subTotalProductos = this.#productos.reduce((acc, prod) => acc + prod.precio * prod.cantidad, 0);
     let subtotalImpuestos = this.#productos.reduce((acc, prod) => acc + (prod.tieneImpuesto ? prod.precio * 0.1 * prod.cantidad : 0),0);
     let total = subTotalProductos + subtotalImpuestos;
 
+    const { descuento, totalConDescuento } = this.aplicarDescuento(); // Aplica el método aplicarDescuento
+
     return (
-      listaDeProductos + 
-      `Subtotal de productos: ${subTotalProductos}\n` + 
-      `Subtotal impuestos: ${subtotalImpuestos.toFixed(2)}\n` + 
-      `Total: ${total.toFixed(2)}`);
+      listaDeProductos +
+      `Subtotal de productos: $${subTotalProductos.toFixed(2)}\n` +
+      `Subtotal impuestos: $${subtotalImpuestos.toFixed(2)}\n` +
+      `Total sin descuento: $${total.toFixed(2)}\n` +
+      `Descuento aplicado: $${descuento}\n` +
+      `Total con descuento: $${totalConDescuento}`
+    );
+
+  }
+
+// Ideas para ir más allá a un nivel intermedio - avanzado
+// ✅ Agregar método para vaciar el carrito (vaciarCarrito()).
+
+// ✅ Aplicar descuento si hay más de X ítems o si el total supera cierta cantidad.
+
+// ✅ Exportar las clases como módulos ES6 y usarlas desde otro archivo.
+
+// ✅ Agregar una clase Inventario o Tienda que maneje múltiples carritos (simulación multiusuario).
+  vaciarCarrito() {
+    this.#productos.splice(0);
+  }
+
+  aplicarDescuento() {
+    const cantidadTotal = this.#productos.reduce((acc, prod) => acc + prod.cantidad, 0);
+    const totalSinDescuento = this.#productos.reduce((acc, prod) => {
+      const precio = this.#precioFinalConImpuesto(prod);
+      return acc + (precio * prod.cantidad);
+    }, 0);
+  
+    let descuento = 0;
+  
+    if (cantidadTotal > 10) {
+      descuento = totalSinDescuento * 0.05; // 5% de descuento
+    } else if (totalSinDescuento > 100) {
+      descuento = totalSinDescuento * 0.10; // 10% de descuento
+    }
+  
+    const totalConDescuento = totalSinDescuento - descuento;
+  
+    return {
+      cantidadTotal,
+      totalSinDescuento: totalSinDescuento.toFixed(2),
+      descuento: descuento.toFixed(2),
+      totalConDescuento: totalConDescuento.toFixed(2),
+    };
   }
 
 }
@@ -251,3 +299,10 @@ console.log(carrito1.calcularTotal());
 console.log(carrito1.calcularImpuestoTotal());
 console.log(carrito1.obtenerCantidadTotal());
 console.log(carrito1.toString());
+// carrito1.vaciarCarrito();
+// console.log(carrito1);
+
+const resultado = carrito1.aplicarDescuento();
+console.log(`Total sin descuento: $${resultado.totalSinDescuento}`);
+console.log(`Descuento aplicado: $${resultado.descuento}`);
+console.log(`Total final con descuento: $${resultado.totalConDescuento}`);
