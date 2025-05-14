@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anotador</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="titulo">Anotador</h1>
+  <input type="text" id="nuevaNota" placeholder="Escribe una nueva nota...">
+  <button onclick="agregarNota()">Agregar Nota</button>
+  <ul id="listaNotas"></ul>
+
+  <script>
+    class Anotador {
+      #titulo;
+      #notas;
+
+      constructor(titulo) {
+        if (typeof titulo !== 'string' || titulo.trim() === '') {
+          throw new Error('Debe ingresar un título');
+        }
+        this.#titulo = titulo;
+        this.#notas = [];
+      }
+
+      agregarNota(nota) {
+        if (typeof nota !== 'string' || nota.trim() === '') {
+          throw new Error('Debe ingresar una nota');
+        }
+        this.#notas.push(nota.trim().replace(/\s+/g, ' '));
+      }
+
+      listarNotas() {
+        return this.#notas.map((nota, i) => ({ id: i + 1, texto: nota }));
+      }
+    }
+
+    const anotador = new Anotador("Cosas para hacer");
+
+    function agregarNota() {
+      const input = document.getElementById('nuevaNota');
+      const texto = input.value;
+      try {
+        anotador.agregarNota(texto);
+        input.value = '';
+        mostrarNotas();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    function mostrarNotas() {
+      const lista = document.getElementById('listaNotas');
+      lista.innerHTML = '';
+      anotador.listarNotas().forEach(nota => {
+        const li = document.createElement('li');
+        li.textContent = `${nota.id}. ${nota.texto}`;
+        lista.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
