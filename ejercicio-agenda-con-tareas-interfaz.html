@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda con Tareas</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    form, .tareas {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .tarea {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    .tarea.finalizada {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .acciones button {
+      margin-right: 5px;
+      background-color: #28a745;
+    }
+    .acciones button.eliminar {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <h1>Agenda con Tareas</h1>
+  <form id="formTarea">
+    <label>Descripción:
+      <input type="text" id="descripcion" required>
+    </label>
+    <label>Categoría:
+      <input type="text" id="categoria" required>
+    </label>
+    <label>Vencimiento:
+      <input type="date" id="vencimiento" required>
+    </label>
+    <button type="submit">Agregar Tarea</button>
+  </form>
+
+  <div class="tareas" id="listaTareas">
+    <h2>Lista de Tareas</h2>
+    <!-- Tareas aquí -->
+  </div>
+
+  <script>
+    class Tarea {
+      static contadorId = 1;
+      constructor(descripcion, categoria, vencimiento) {
+        this.id = Tarea.contadorId++;
+        this.descripcion = descripcion.trim();
+        this.categoria = categoria.trim().toLowerCase();
+        this.vencimiento = new Date(vencimiento).toISOString().split('T')[0];
+        this.finalizada = false;
+      }
+      finalizar() {
+        this.finalizada = true;
+      }
+      toString() {
+        return `Tarea ${this.id}: ${this.descripcion} (${this.categoria}) - Vence: ${this.vencimiento}`;
+      }
+    }
+
+    class Agenda {
+      constructor() {
+        this.tareas = [];
+      }
+      agregar(tarea) {
+        this.tareas.push(tarea);
+      }
+      eliminar(id) {
+        this.tareas = this.tareas.filter(t => t.id !== id);
+      }
+      finalizar(id) {
+        const tarea = this.tareas.find(t => t.id === id);
+        if (tarea) tarea.finalizar();
+      }
+      obtenerTodas() {
+        return this.tareas;
+      }
+    }
+
+    const agenda = new Agenda();
+    const form = document.getElementById('formTarea');
+    const listaTareas = document.getElementById('listaTareas');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const descripcion = document.getElementById('descripcion').value;
+      const categoria = document.getElementById('categoria').value;
+      const vencimiento = document.getElementById('vencimiento').value;
+
+      try {
+        const nuevaTarea = new Tarea(descripcion, categoria, vencimiento);
+        agenda.agregar(nuevaTarea);
+        form.reset();
+        renderTareas();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    function renderTareas() {
+      const tareas = agenda.obtenerTodas();
+      const contenedor = document.createElement('div');
+      tareas.forEach(t => {
+        const div = document.createElement('div');
+        div.className = `tarea ${t.finalizada ? 'finalizada' : ''}`;
+        div.innerHTML = `
+          <strong>${t.descripcion}</strong><br>
+          Categoría: ${t.categoria}<br>
+          Vence: ${t.vencimiento}<br>
+          <div class="acciones">
+            <button onclick="finalizarTarea(${t.id})">Finalizar</button>
+            <button class="eliminar" onclick="eliminarTarea(${t.id})">Eliminar</button>
+          </div>
+        `;
+        contenedor.appendChild(div);
+      });
+      listaTareas.innerHTML = '<h2>Lista de Tareas</h2>';
+      listaTareas.appendChild(contenedor);
+    }
+
+    function finalizarTarea(id) {
+      agenda.finalizar(id);
+      renderTareas();
+    }
+
+    function eliminarTarea(id) {
+      agenda.eliminar(id);
+      renderTareas();
+    }
+  </script>
+</body>
+</html>
+
